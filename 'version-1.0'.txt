@@ -1,0 +1,189 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <cmath>
+
+class Calculator
+{
+    private:
+        std::string expr;
+        std::vector<double> nums;
+        std::vector<std::string> ops;      // *** operators ***
+        double result;
+
+    public:
+        void inputExpr();
+        std::string getExpr() {return expr;}
+        int precedence(char op);
+        void parseExpr();
+        double evaluateExpr();
+        void displayResult() const;
+        double applyOperation(double x, double y, char op);
+};
+
+void Calculator::inputExpr()
+{
+    std::getline(std::cin, expr);
+}
+
+int Calculator::precedence(char op)
+{
+    switch(op)
+    {
+        case '+':
+        case '-': return 1;
+        case '*':
+        case '/': return 2;
+        case '^': return 3;
+        default: return 0;
+    }
+}
+
+void Calculator::parseExpr()
+{
+    nums.clear();
+    ops.clear();
+    
+    for(size_t i = 0; i < expr.size(); ++i)
+    {
+        char c = expr[i];
+
+        if(isspace(c)) continue;
+
+        if (isdigit(c) || (c == '-' && i + 1 < expr.size() && isdigit(expr[i + 1]) && (i == 0 || expr[i - 1] == '(')))
+        {
+            std::string numStr;
+            if(c == '-') {numStr += c; ++i;}
+
+            while(i < expr.size() && (isdigit(expr[i]) || expr[i] == '.'))
+            {
+                numStr += expr[i];
+                ++i;
+            }
+
+            --i;
+            std::cout << "Parsed number: " << numStr << "\n";
+            nums.push_back(std::stod(numStr));
+            continue;
+        }
+
+        if(c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '(' || c == ')')
+        {
+            ops.push_back(std::string(1, c));
+            continue;
+        }
+
+        std::cerr << "Unknown character" << c << "\n";
+    }
+}
+
+double Calculator::applyOperation(double x, double y, char op)
+{
+    switch(op)
+    {
+        case '+': return x + y;
+        case '-': return x - y;
+        case '*': return x * y;
+        case '/': if(y == 0) {std::cerr << "Division by zero!\n"; return 0;} return x / y;
+        case '^': return pow(x, y);
+        default: std::cerr << "Unknown operator " << op << "\n"; return 0;
+    }
+}
+
+double Calculator::evaluateExpr()
+{
+    std::vector<double> numStack;
+    std::vector<char> opStack;
+    size_t n = 0;
+
+    for(size_t i = 0; i < ops.size(); ++i)
+    {
+        char op = ops[i][0];
+
+        if(n < nums.size())
+            numStack.push_back(nums[n++]);
+
+        if(op == '(') opStack.push_back(op);
+
+        else if(op == ')')
+        {
+            while(!opStack.empty() && opStack.back() != '(')
+            {
+                double y = numStack.back(); numStack.pop_back();
+                double x = numStack.back(); numStack.pop_back();
+                char top_op = opStack.back(); opStack.pop_back();
+                numStack.push_back(applyOperation(x, y, top_op));
+            }
+
+            if(!opStack.empty()) opStack.pop_back();
+        }
+
+        else
+        {
+            while(!opStack.empty() && precedence(opStack.back()) >= precedence(op))
+            {
+                double y = numStack.back(); numStack.pop_back();
+                double x = numStack.back(); numStack.pop_back();
+                char top_op = opStack.back(); opStack.pop_back();
+                numStack.push_back(applyOperation(x, y, top_op));
+            }
+
+            opStack.push_back(op);
+        }
+    }
+
+    while(!opStack.empty())
+    {
+        double y = numStack.back(); numStack.pop_back();
+        double x = numStack.back(); numStack.pop_back();
+        char top_op = opStack.back(); opStack.pop_back();
+        numStack.push_back(applyOperation(x, y, top_op));
+    }
+
+    result = numStack.empty() ? 0 : numStack.back();
+    return result;
+}
+
+void Calculator::displayResult() const
+{
+    std::cout << "Answer: " << result << "\n";
+}
+
+struct Application
+{
+    Calculator calc;
+
+    void run()
+    {
+        greet();
+
+        while(true)
+        {
+            std::cout << "\nEnter your expression: ";
+            calc.inputExpr();
+
+            if(calc.getExpr() == "exit")
+            {
+                std::cout << "Program finished with exit code 0.";
+                break;
+            }
+
+            calc.parseExpr();
+            calc.evaluateExpr();
+            calc.displayResult();
+        }
+    }
+
+    void greet()
+    {
+        std::cout << "\n------ Welcome to Calculator 1.0 ------\n";
+        std::cout << "Available operations (PEMDAS): +, -, *, /, ^, ().\nType 'exit' to close program.";
+    }
+};
+
+int main()
+{
+    Application app;
+    app.run();
+    return 0;
+}
