@@ -313,7 +313,8 @@ struct Application
             if(calc.getExpr() == "help")
             {
                 std::cout << "\nEnter any mathematical expression using numbers and any of the following operations: (), ^, *, /, +, -.";
-                std::cout << "\nType 'exit' to close program.";
+                std::cout << "\nType 'exit' to close program.\n";
+                continue;
             }
 
             calc.evaluateExpr();
