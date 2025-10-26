@@ -1,5 +1,5 @@
 Try these expressions to make sure calculator works as intended:
 
--3 + 5 - (8^2 + 2) // expect -64	###should work with unary minus
-3^2^3 - 128 + (10^3 - 9 * 5) // expect 7388	###associative rule of exponents
-(10 * 3) - (7 / 2) + (8^3 * 2) // expect 1050.5		###grouping
+-3 + 5 - (8^2 + 2) // expect -64	### should work with unary minus
+3^2^3 - 128 + (10^3 - 9 * 5) // expect 7388	### associative rule of exponents
+(10 * 3) - (7 / 2) + (8^3 * 2) // expect 1050.5		### grouping

@@ -29,24 +29,16 @@ class Calculator
         std::vector<Token> tokenize();
         std::vector<Token> toPostfix(const std::vector<Token>& tokens);
         double evaluatePostfix(const std::vector<Token>& postfix);
-        void debug(const std::vector<Token>& tokens, const std::string& stage);
 
-        double evaluateExpr();
+        void evaluateExpr();
         void displayResult() const;
 };
 
-// ----------------------------
-// Input expression from user
-// ----------------------------
 void Calculator::inputExpr()
 {
     std::getline(std::cin, expr);
 }
 
-// ----------------------------
-// Operator precedence
-// 'u' is unary minus
-// ----------------------------
 int Calculator::precedence(char op)
 {
     switch(op)
@@ -55,16 +47,13 @@ int Calculator::precedence(char op)
         case '-': return 1;
         case '*':
         case '/': return 2;
-        case 'u': return 3;  // unary minus
+        case 'u': return 3;
         case '^': return 4;
         case '%': return 5;
         default: return 0;
     }
 }
 
-// ----------------------------
-// Apply binary operations
-// ----------------------------
 double Calculator::applyOperation(double x, double y, char op)
 {
     switch(op)
@@ -83,10 +72,6 @@ double Calculator::applyOperation(double x, double y, char op)
     }
 }
 
-// ----------------------------
-// Tokenize the input expression
-// Handles numbers, operators, parentheses, unary minus
-// ----------------------------
 std::vector<Calculator::Token> Calculator::tokenize()
 {
     std::vector<Token> tokens;
@@ -96,13 +81,8 @@ std::vector<Calculator::Token> Calculator::tokenize()
     {
         char c = expr[i];
 
-        // Skip whitespace
         if(isspace(c)) { ++i; continue; }
 
-        // ----------------------------
-        // Handle unary minus as 'u' operator
-        // Occurs at start, after operator, or after '('
-        // ----------------------------
         if(c == '-' && (i == 0 || tokens.empty() || tokens.back().type == Token::OPERATOR || tokens.back().type == Token::PAREN_LEFT))
         {
             tokens.push_back({Token::OPERATOR, 0, 'u'});
@@ -110,9 +90,6 @@ std::vector<Calculator::Token> Calculator::tokenize()
             continue;
         }
 
-        // ----------------------------
-        // Parse numbers (integers or decimals)
-        // ----------------------------
         if(isdigit(c) || (c == '.' && i + 1 < expr.size() && isdigit(expr[i + 1])))
         {
             std::string numStr;
@@ -136,9 +113,6 @@ std::vector<Calculator::Token> Calculator::tokenize()
             continue;
         }
 
-        // ----------------------------
-        // Parse binary operators
-        // ----------------------------
         if(c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '%')
         {
             tokens.push_back({Token::OPERATOR, 0, c});
@@ -146,9 +120,6 @@ std::vector<Calculator::Token> Calculator::tokenize()
             continue;
         }
 
-        // ----------------------------
-        // Parse parentheses
-        // ----------------------------
         if(c == '(')
         {
             tokens.push_back({Token::PAREN_LEFT, 0, 0});
@@ -164,23 +135,17 @@ std::vector<Calculator::Token> Calculator::tokenize()
         }
 
         throw std::runtime_error(std::string("Unknown character: ") + c);
-        // ++i REMOVED 166 166 166
     }
 
     return tokens;
 }
 
-// ----------------------------
-// Convert tokens to postfix (RPN) using Shunting Yard
-// Handles operator precedence and right-associativity
-// ----------------------------
 std::vector<Calculator::Token> Calculator::toPostfix(const std::vector<Token>& tokens)
 {
     std::vector<Token> output;
     std::stack<Token> opStack;
 
     auto isRightAssociative = [](char op) { return op == '^' || op == 'u' || op == '%'; };
-    auto precedence = [this](char op) { return this->precedence(op); };
 
     for(const auto &tok : tokens)
     {
@@ -192,8 +157,8 @@ std::vector<Calculator::Token> Calculator::toPostfix(const std::vector<Token>& t
             {
                 char topOp = opStack.top().op;
 
-                if((!isRightAssociative(tok.op) && precedence(topOp) >= precedence(tok.op)) ||
-                   (isRightAssociative(tok.op) && precedence(topOp) > precedence(tok.op)))
+                if((!isRightAssociative(tok.op) && this->precedence(topOp) >= this->precedence(tok.op)) ||
+                   (isRightAssociative(tok.op) && this->precedence(topOp) > this->precedence(tok.op)))
                 {
                     output.push_back(opStack.top()); opStack.pop();
                 }
@@ -232,10 +197,6 @@ std::vector<Calculator::Token> Calculator::toPostfix(const std::vector<Token>& t
     return output;
 }
 
-// ----------------------------
-// Evaluate postfix expression
-// Handles unary minus 'u' and binary operators
-// ----------------------------
 double Calculator::evaluatePostfix(const std::vector<Token>& postfix)
 {
     std::stack<double> st;
@@ -243,11 +204,8 @@ double Calculator::evaluatePostfix(const std::vector<Token>& postfix)
     for(const auto &tok : postfix)
     {
         if(tok.type == Token::NUMBER)
-        {
             st.push(tok.value);
-            std::cout << "\nPush " << tok.value << " onto stack\n";
-        }
-
+            
         else if(tok.type == Token::OPERATOR)
         {
             if(tok.op == 'u')
@@ -258,7 +216,6 @@ double Calculator::evaluatePostfix(const std::vector<Token>& postfix)
                 double x = st.top();
                 st.pop();
                 st.push(-x);
-                std::cout << "Unary minus applied: -" << x << " -> pushed " << -x << "\n";
             }
 
             else if(tok.op == '%')
@@ -271,7 +228,6 @@ double Calculator::evaluatePostfix(const std::vector<Token>& postfix)
 
                 double r = x / 100.0;
                 st.push(r);
-                std::cout << "Percent applied: " << x << "% -> pushed " << r << "\n";
             }
 
             else
@@ -286,7 +242,6 @@ double Calculator::evaluatePostfix(const std::vector<Token>& postfix)
 
                 double r = applyOperation(x, y, tok.op);
                 st.push(r);
-                std::cout << "Applying " << tok.op << " to " << x << " and " << y << " -> " << r << "\n";
             }
         }
     }
@@ -297,45 +252,12 @@ double Calculator::evaluatePostfix(const std::vector<Token>& postfix)
     return st.top();
 }
 
-// ----------------------------
-// Evaluate the expression: tokenize -> postfix -> evaluate
-// ----------------------------
-double Calculator::evaluateExpr()
+void Calculator::evaluateExpr()
 {
     auto tokens = tokenize();
-    debug(tokens, "After Tokenization");
-
     auto postfix = toPostfix(tokens);
-    debug(postfix, "Postfix Conversion");
 
     result = evaluatePostfix(postfix);
-    return result;
-}
-
-void Calculator::debug(const std::vector<Token>& tokens, const std::string& stage)
-{
-    std::cout << "\n--- Debug: " << stage << " ---\n";
-
-    for(const auto &tok : tokens)
-    {
-        switch(tok.type)
-        {
-            case Token::NUMBER:
-                std::cout << "Number: " << tok.value << "\n";
-                break;
-            case Token::OPERATOR:
-                std::cout << "Operator: " << tok.op << "\n";
-                break;
-            case Token::PAREN_LEFT:
-                std::cout << "Paren: (\n";
-                break;
-            case Token::PAREN_RIGHT:
-                std::cout << "Paren: )\n";
-                break;
-        }
-    }
-
-    std::cout << "-----------------------------------\n";
 }
 
 void Calculator::displayResult() const
