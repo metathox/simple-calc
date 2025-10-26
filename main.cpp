@@ -180,7 +180,6 @@ std::vector<Calculator::Token> Calculator::toPostfix(const std::vector<Token>& t
     std::stack<Token> opStack;
 
     auto isRightAssociative = [](char op) { return op == '^' || op == 'u' || op == '%'; };
-    auto precedence = [this](char op) { return this->precedence(op); };
 
     for(const auto &tok : tokens)
     {
@@ -192,8 +191,8 @@ std::vector<Calculator::Token> Calculator::toPostfix(const std::vector<Token>& t
             {
                 char topOp = opStack.top().op;
 
-                if((!isRightAssociative(tok.op) && precedence(topOp) >= precedence(tok.op)) ||
-                   (isRightAssociative(tok.op) && precedence(topOp) > precedence(tok.op)))
+                if((!isRightAssociative(tok.op) && this->precedence(topOp) >= this->precedence(tok.op)) ||
+                   (isRightAssociative(tok.op) && this->precedence(topOp) > this->precedence(tok.op)))
                 {
                     output.push_back(opStack.top()); opStack.pop();
                 }
